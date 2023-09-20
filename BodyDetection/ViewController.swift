@@ -16,8 +16,30 @@ class ViewController: UIViewController, ARSessionDelegate {
     
     // The 3D character to display.
     var character: BodyTrackedEntity?
-    let characterOffset: SIMD3<Float> = [-1.0, 0, 0] // Offset the character by one meter to the left
+    let characterOffset: SIMD3<Float> = [-1.0, 0, 0]
     let characterAnchor = AnchorEntity()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        setupButtons()
+    }
+    
+    func setupButtons() {
+        // Setup Robot Button
+        let robotButton = UIButton(type: .system)
+        robotButton.setTitle("Load Robot", for: .normal)
+        robotButton.addTarget(self, action: #selector(loadRobotModel), for: .touchUpInside)
+        robotButton.frame = CGRect(x: 20, y: view.bounds.height - 60, width: 120, height: 40)
+        arView.addSubview(robotButton)
+        
+        // Setup Pikachu Button
+        let pikachuButton = UIButton(type: .system)
+        pikachuButton.setTitle("Load Pikachu", for: .normal)
+        pikachuButton.addTarget(self, action: #selector(loadPikachuModel), for: .touchUpInside)
+        pikachuButton.frame = CGRect(x: view.bounds.width - 140, y: view.bounds.height - 60, width: 120, height: 40)
+        arView.addSubview(pikachuButton)
+    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -29,32 +51,48 @@ class ViewController: UIViewController, ARSessionDelegate {
             fatalError("This feature is only supported on devices with an A12 chip")
         }
 
-        // Run a body tracking configration.
+        // Run a body tracking configuration.
         let configuration = ARBodyTrackingConfiguration()
         arView.session.run(configuration)
         
         arView.scene.addAnchor(characterAnchor)
+    }
+
+    @objc func loadRobotModel(_ sender: UIButton) {
+        loadModel(named: "character/robot")
+    }
+
+    @objc func loadPikachuModel(_ sender: UIButton) {
+        loadModel(named: "character/pikachu")
+    }
+
+    func loadModel(named modelName: String) {
+        // Remove the current character from its anchor and set its reference to nil.
+        if let currentCharacter = character {
+            characterAnchor.removeChild(currentCharacter)
+            character = nil
+        }
         
-        // Asynchronously load the 3D character.
         var cancellable: AnyCancellable? = nil
-        cancellable = Entity.loadBodyTrackedAsync(named: "character/pikachu").sink(
+        cancellable = Entity.loadBodyTrackedAsync(named: modelName).sink(
             receiveCompletion: { completion in
                 if case let .failure(error) = completion {
                     print("Error: Unable to load model: \(error.localizedDescription)")
                 }
                 cancellable?.cancel()
-        }, receiveValue: { (character: Entity) in
-            if let character = character as? BodyTrackedEntity {
-                // Scale the character to human size
-                character.scale = [1.0, 1.0, 1.0]
-                self.character = character
-                cancellable?.cancel()
-            } else {
-                print("Error: Unable to load model as BodyTrackedEntity")
-            }
-        })
+            }, receiveValue: { (entity: Entity) in
+                if let loadedCharacter = entity as? BodyTrackedEntity {
+                    loadedCharacter.scale = [1.0, 1.0, 1.0]
+                    self.character = loadedCharacter
+                    self.characterAnchor.addChild(loadedCharacter)
+                    cancellable?.cancel()
+                } else {
+                    print("Error: Unable to load model as BodyTrackedEntity")
+                }
+            })
     }
-    
+
+
     func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
         for anchor in anchors {
             guard let bodyAnchor = anchor as? ARBodyAnchor else { continue }
@@ -75,3 +113,4 @@ class ViewController: UIViewController, ARSessionDelegate {
         }
     }
 }
+
