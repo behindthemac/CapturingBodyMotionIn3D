@@ -26,19 +26,19 @@ class ViewController: UIViewController, ARSessionDelegate {
     }
     
     func setupButtons() {
-        // Setup Robot Button
-        let robotButton = UIButton(type: .system)
-        robotButton.setTitle("Load Robot", for: .normal)
-        robotButton.addTarget(self, action: #selector(loadRobotModel), for: .touchUpInside)
-        robotButton.frame = CGRect(x: 20, y: view.bounds.height - 60, width: 120, height: 40)
-        arView.addSubview(robotButton)
-        
         // Setup Pikachu Button
         let pikachuButton = UIButton(type: .system)
-        pikachuButton.setTitle("Load Pikachu", for: .normal)
+        pikachuButton.setTitle("Pikachu", for: .normal)
         pikachuButton.addTarget(self, action: #selector(loadPikachuModel), for: .touchUpInside)
-        pikachuButton.frame = CGRect(x: view.bounds.width - 140, y: view.bounds.height - 60, width: 120, height: 40)
+        pikachuButton.frame = CGRect(x: 20, y: view.bounds.height - 60, width: 120, height: 40)
         arView.addSubview(pikachuButton)
+
+        // Setup Machoke Button
+        let machokeButton = UIButton(type: .system)
+        machokeButton.setTitle("Machoke", for: .normal)
+        machokeButton.addTarget(self, action: #selector(loadMachokeModel), for: .touchUpInside)
+        machokeButton.frame = CGRect(x: view.bounds.width - 140, y: view.bounds.height - 60, width: 120, height: 40)
+        arView.addSubview(machokeButton)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -58,12 +58,12 @@ class ViewController: UIViewController, ARSessionDelegate {
         arView.scene.addAnchor(characterAnchor)
     }
 
-    @objc func loadRobotModel(_ sender: UIButton) {
-        loadModel(named: "character/robot")
-    }
-
     @objc func loadPikachuModel(_ sender: UIButton) {
         loadModel(named: "character/pikachu")
+    }
+
+    @objc func loadMachokeModel(_ sender: UIButton) {
+        loadModel(named: "character/machoke")
     }
 
     func loadModel(named modelName: String) {
